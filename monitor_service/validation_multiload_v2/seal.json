@@ -1,0 +1,23 @@
+{
+  "id": "service-validation-multiload-v2",
+  "version": "2.0.0",
+  "created_at_utc": "2026-10-22T16:55:34.538761+00:00",
+  "original_seal_sha256": "c0d8c7a91f0f8a52e3ad75fe9146b978393680caa4d329e9c35ce19f43a4c441",
+  "files": {
+    "monitor_service/warmup_load.py": "e6a6b0f9631140ea1bd114ae7df68135cec5ce5178db2630a7f31718b4b2e138",
+    "monitor_service/validation_multiload.py": "6dd91e69df5d998c8939a2bd8e7a33716448e63f1d9913819cedebe3a09a6997",
+    "monitor_service/test_warmup_load.py": "1e3a9f2e4b6b069d709761bcda9f13ed02f5e57a6ac3de97b6db920a8dbaab72",
+    "monitor_service/validation_multiload_v2/protocol.json": "33f9497d7f8fc31257b1fdf0d92f54d671c4eaf174335040f9490bf0e99fb374",
+    "monitor_service/validation_multiload_v2/Протокол.md": "b36467046e9d1d0c3507c4192d9f707db2200079d9dd1f48805c51a69380295c",
+    "work/run_multiload_validation_v2.py": "f109657dc25ae720714e9b9a8ca4e4a98d3347447980223086ec567c36331342",
+    "work/evaluate_multiload_validation_v2.py": "04abcb58977f1e718310eb86f2232af185e3df6a7c51850cdd0f4684ee0e763f",
+    "work/test_multiload_validation_v2.py": "733484cfd31e82f060bd678b2e3da83c1e5f571fa219b3a25b36b9805d18b6e8",
+    "work/evaluate_validation_series_v1.py": "5ba4640d9febe417de3a88fe9e9ef2284757ecf578f09fe641fe4a073c00ebf7"
+  },
+  "tests_passed_before_new_recordings": 24,
+  "planned_runs": [
+    6,
+    7
+  ],
+  "parameters_tuned_after_outcomes": false
+}

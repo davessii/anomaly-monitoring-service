@@ -1,0 +1,30 @@
+# Python and local environments
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.research-deps/
+
+# Local data, logs and test output
+runtime-data/
+monitor_service/data/
+*.sqlite*
+*.db
+*.db-*
+*.log
+*.log.*
+!monitor_service/examples/logs/v1/access.log
+work/*
+!work/.gitkeep
+results/
+
+# Credentials and machine-specific files
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db

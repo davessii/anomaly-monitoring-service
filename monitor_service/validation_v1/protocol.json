@@ -1,0 +1,71 @@
+{
+  "id": "service-validation-v1",
+  "version": "1.0.0",
+  "fixed_on_local_date": "2026-10-22",
+  "timezone": "Europe/Moscow",
+  "purpose": "Five prospective records of the existing service; no tuning and no claim of IPCA superiority",
+  "service_version": "0.7.0",
+  "runtime_versions": {"python": "3.12.14", "numpy": "2.5.3"},
+  "model_config": {
+    "components": 1, "batch_size": 128, "forgetting": 0.85,
+    "excluded_fraction": 0.1, "random_repeats": 7, "guard_ratio": 3.0,
+    "min_model_distance": 0.025, "min_threshold_change": 0.1,
+    "threshold_quantile": 0.99, "history_size": 512,
+    "ae_initial_epochs": 250, "ae_update_epochs": 5
+  },
+  "source_config": {
+    "version": 2, "profile": "owned_access_us_v2", "schema": "web_access_metrics_us_v2",
+    "features": ["completed_rps", "mean_request_ms", "server_error_fraction"],
+    "window_ms": 1000, "lateness_ms": 2000, "components": 1,
+    "processing_mode": "log_quality_v2", "lengths": [256, 128, 512],
+    "log_settings": {"version": 2, "handler_limit_ms": 10.0,
+      "allowed_error_fraction": 0.0, "recovery_seconds": 10, "protect_learning": true}
+  },
+  "generator": {
+    "normal_rps": 2, "high_rps": 8, "delay_seconds_per_request": 0.25,
+    "error_status": 503, "max_simultaneous_client_requests": 2,
+    "warmup_timeout_seconds": 1200, "poll_seconds": 1.0,
+    "max_boundary_lateness_seconds": 1.0, "max_clock_drift_seconds": 1.0,
+    "delivery_drain_seconds": 4.0,
+    "cleanup_timeout_seconds": 15.0,
+    "http_timeout_seconds": 3.0,
+    "stage_order": ["normal", "load", "delay", "errors", "recovery"]
+  },
+  "runs": [
+    {"run": 1, "normal": 30, "load": 20, "delay": 15, "errors": 15, "recovery": 20},
+    {"run": 2, "normal": 37, "load": 20, "delay": 12, "errors": 18, "recovery": 20},
+    {"run": 3, "normal": 44, "load": 20, "delay": 18, "errors": 12, "recovery": 20},
+    {"run": 4, "normal": 51, "load": 20, "delay": 14, "errors": 16, "recovery": 20},
+    {"run": 5, "normal": 58, "load": 20, "delay": 16, "errors": 14, "recovery": 20}
+  ],
+  "evaluation": {
+    "primary_signal": "quality_alarm, with handler_time_alarm and http_error_alarm reported separately",
+    "ipca_signal": "statistical_alarm independently of message_kind and quality_alarm",
+    "event_time": "UTC command send/ack bracket; monotonic deadlines; per-request served_mode retained for audit only",
+    "earliest_stage_end": "min(command send + duration, next stage first command send, scheduled UTC end); final stage uses scheduled UTC end",
+    "eligible_window": "window start >= main command acknowledgment; window end <= earliest_stage_end; boundary windows listed separately",
+    "on_time_detection": "matching signal on eligible faulty window AND emitted_at < earliest_stage_end",
+    "latency_interval_seconds": "[max(0, emitted_at - acknowledgment), emitted_at - command send]",
+    "false_service_alarms": "quality_alarm on the contiguous healthy span from normal acknowledgment until earliest delay start; windows crossing normal-to-load are INCLUDED; count seconds and contiguous groups",
+    "healthy_ipca_warnings": "all statistical_alarm on the contiguous pre-fault healthy span INCLUDING normal-to-load transition; report recovery healthy windows separately, even when quality_alarm is false",
+    "recovery": "one recovery after both adjacent faults; emitted after recovery acknowledgment and before recovery send + 20 seconds; exactly ten consecutive good windows required",
+    "partial_boundary_windows": "retained, counted separately, never silently treated as normal or used to claim precise onset",
+    "ipca_success": "IPCA on-time detection and healthy-warning counts reported independently; service rules cannot satisfy the IPCA endpoint",
+    "per_run_service_success": "valid recording AND delay detected on time AND HTTP error detected on time AND zero false service alarms on normal/load AND recovery on time",
+    "series_service_success": "all five planned recordings valid and all five meet per_run_service_success; otherwise report each failure/invalid attempt",
+    "scientific_scope": "Five separate app/model/log recordings on one PC; not independent populations, proof of superiority, zero long-term false-alarm rate, or proof against long-term habituation"
+  },
+  "policy": {
+    "fresh_application_and_model_each_run": true,
+    "reuse_trained_model": false,
+    "tune_parameters": false,
+    "change_schedules_after_outcomes": false,
+    "automatic_retries": false,
+    "silently_replace_failed_runs": false,
+    "change_frozen_scientific_results": false,
+    "normal_online_learning_remains_enabled": true,
+    "manual_controls_during_recording": false,
+    "evaluate_before_all_recordings_saved": false,
+    "steps_3_and_4_started": false
+  }
+}

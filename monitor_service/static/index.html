@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Мониторинг показателей</title><link rel="stylesheet" href="/style.css"><script defer src="/app.js"></script><script defer src="/status.js"></script><script defer src="/bench.js"></script><script defer src="/logs.js"></script></head>
+<body><main>
+<header><div><div class="eyebrow">ДИПЛОМ · ПЕРВАЯ ЛОКАЛЬНАЯ ВЕРСИЯ</div><h1>Наблюдение за сервером</h1><p>Поступающие показатели, оценка необычных изменений и журнал уведомлений.</p></div><span id="connection" class="badge">Подключение…</span></header>
+<section class="start"><div><h2>Выберите источник</h2><p>Можно собирать настоящие показатели этого компьютера или посмотреть искусственный пример.</p></div><div class="actions"><button id="local">Показатели этого ПК</button><button id="demo" class="secondary">Демонстрационный поток</button></div></section>
+<div id="error" role="alert" hidden></div>
+<section class="panel" id="log-panel" aria-labelledby="log-title">
+<h2 id="log-title">Журнал веб-приложения</h2>
+<p>Сервис читает новые строки из файла другого приложения: считает запросы, среднее время обработки и долю серверных ошибок.</p>
+<p id="log-directory" class="log-directory caption"></p>
+<div class="toolbar"><label for="log-file">Файл журнала</label><select id="log-file"><option value="">Загрузка списка…</option></select><button id="log-create">Новое наблюдение</button><button class="secondary" id="log-reload">Обновить список</button></div>
+<div class="policy-controls"><label>Формат журнала <select id="log-profile"><option value="owned_access_us_v2">Точное время · учебное приложение</option><option value="nginx_access_v1">Прежний формат · целые миллисекунды</option></select></label><label>Допустимое среднее время обработки, мс <input id="log-handler-limit" type="number" min="0.001" max="600000" step="any" value="10"></label><label>Допустимая доля ответов 500–599, % <input id="log-error-limit" type="number" min="0" max="100" step="any" value="0"></label></div>
+<p class="caption">Для учебного примера указано 10 мс обработки внутри приложения и отсутствие серверных ошибок. Для другого приложения задайте его требования. Это отдельная настройка от времени ожидания ответа клиентом. Настройки закрепляются за новым наблюдением; прежние модели не перенастраиваются.</p>
+<p class="caption">Новое наблюдение создаёт отдельную модель и читает с текущего конца файла. Приложение уже должно непрерывно записывать запросы в этот файл. Новый точный формат: <code>v2 ts=1792490400.123 status=200 rt=0.000285</code>. Прежний v1 читается отдельно.</p>
+<div class="toolbar"><label for="log-source">Сохранённое наблюдение</label><select id="log-source"><option value="">Наблюдений пока нет</option></select><button class="secondary" id="log-resume" disabled>Продолжить</button><button class="secondary" id="log-stop" disabled>Остановить</button></div>
+<p id="log-message" role="status" aria-live="polite"></p>
+<div id="log-details" hidden>
+<p id="log-state" class="notice"></p>
+<div id="log-message-state" class="message-state" role="status" aria-live="polite"><strong id="log-message-title">Модель обучается</strong><p id="log-message-explanation"></p></div>
+<p class="caption" id="log-learning"></p>
+<div class="cards log-cards"><article><span>Принято запросов</span><strong id="log-requests">0</strong><small id="log-quality"></small></article><article><span>Передано модели</span><strong id="log-samples">0</strong><small id="log-warmup"></small></article><article><span>Ожидают передачи</span><strong id="log-queue">0</strong><small id="log-backlog"></small></article></div>
+<h3>Последняя завершённая секунда</h3><div class="scroll"><table><thead><tr><th>Конец секунды</th><th>Запросов</th><th>Обработка, мс</th><th>Ответов 500–599</th><th>Доля таких ответов</th><th>Качество данных</th></tr></thead><tbody id="log-latest"></tbody></table></div>
+<p id="log-detail-note" class="caption"></p>
+<h3>Сообщения журнала</h3><p class="caption">«Тревога» — нарушение заданных требований к ответам. «Предупреждение» — необычные показатели модели, причина ещё не установлена. Восстановление качества подтверждается десятью последовательными секундами нормальных ответов. Предупреждение не считается заведомо ложным.</p>
+<div class="scroll"><table><thead><tr><th>Время</th><th>Вид сообщения</th><th>Пояснение</th></tr></thead><tbody id="log-events"></tbody></table></div>
+</div>
+<p class="caption">Показатели готовы через две секунды после окончания интервала. Пустые или повреждённые данные не считаются нормальной работой: подача в модель приостанавливается. Коды ошибок в таблице взяты из журнала; предупреждения IPCA показаны отдельно ниже при выборе этого источника.</p>
+</section>
+<section class="panel" id="bench-panel"><div class="section-head"><div><h2>Учебное приложение</h2><p>Небольшое отдельное приложение получает запросы. Здесь можно сопоставить его работу с уведомлениями модели.</p></div><button id="bench-start">Запустить приложение</button></div>
+<p id="bench-status" class="notice">Приложение ещё не запущено. Первоначальное обучение занимает около 15 минут.</p>
+<p id="bench-access-status" class="caption">Новый запуск приложения автоматически создаст журнал запросов. Его можно подключить в блоке «Журнал веб-приложения».</p>
+<p class="caption">Модель показателей приложения не получает время ответа и коды ошибок. Для журнала создаётся другая модель: она получает показатели запросов за секунду. Команды включения проверок не входят в признаки ни одной модели.</p>
+<div class="actions"><button class="secondary" id="bench-delay" disabled>Задержка ответов на 10 секунд</button><button class="secondary" id="bench-errors" disabled>Ошибки ответов на 10 секунд</button><button class="secondary" id="bench-normal" disabled>Вернуть обычную работу</button><button class="secondary" id="bench-stop" disabled>Остановить приложение</button></div>
+<div class="actions bench-extra-controls"><button class="secondary" id="bench-extra-cpu" disabled>Лишние вычисления на 10 секунд</button><button class="secondary" id="bench-load-more" disabled>Больше запросов на 10 секунд</button><button class="secondary" id="bench-load-normal" disabled>Обычный поток запросов</button></div>
+<p id="bench-load-state" class="caption">Обычный поток — около двух запросов в секунду.</p>
+<p class="caption">Лишние вычисления меняют работу внутри приложения, увеличение потока — число запросов. Эти проверки выполняются отдельно. Число запросов можно менять во время начального обучения; лишние вычисления доступны только после него.</p>
+<p id="bench-message" role="status"></p><div id="bench-detail" hidden><p id="bench-summary"></p><div class="scroll"><table><thead><tr><th>Время завершения запроса</th><th>Время ответа, мс</th><th>Ответ приложения</th><th>Применённый режим</th><th>Лишние вычисления, мс процессора</th></tr></thead><tbody id="bench-requests"></tbody></table></div></div>
+</section>
+<section class="panel" id="service-panel"><h2>Ответы приложения и предупреждения модели</h2>
+<div class="toolbar"><label for="service-run-select">Запуск приложения</label><select id="service-run-select"><option value="">Запусков пока нет</option></select></div>
+<div class="policy-controls"><label for="latency-limit">Допустимое время ответа, мс <input id="latency-limit" type="number" min="0.001" max="600000" step="any" placeholder="Не задано"></label><button id="service-policy-save" class="secondary">Сохранить границу времени</button></div>
+<p class="caption">Пустое поле отключает проверку скорости. Граница задаётся по требованиям к приложению. Она не меняет IPCA. Ошибки ответов и отсутствие ответа проверяются отдельно.</p>
+<p id="service-message" role="status"></p><div id="service-detail" hidden><p id="service-run" class="caption"></p>
+<div class="cards service-cards"><article><span>Состояние ответов</span><strong id="response-state">—</strong><small id="response-counts"></small></article><article><span>Последний запрос: сколько ждали</span><strong id="response-last">—</strong><small id="response-range"></small></article></div>
+<h3>Периоды проблем с ответами</h3><div class="scroll"><table><thead><tr><th>Первый сигнал</th><th>Последний сигнал</th><th>Возврат / состояние</th><th>Неуспешных или медленных запросов</th><th>Что произошло</th></tr></thead><tbody id="response-episodes"></tbody></table></div>
+<h3>Группы предупреждений IPCA</h3><p id="model-service-state" class="caption"></p><div class="scroll"><table><thead><tr><th>Первый сигнал</th><th>Последний сигнал</th><th>Возврат / состояние</th><th>Необычных наблюдений</th><th>Что произошло</th></tr></thead><tbody id="model-episodes"></tbody></table></div>
+<p class="caption">В каждой таблице показаны последние 30 групп выбранного запуска.</p><p id="service-view-note" class="caption"></p></div></section>
+<div class="toolbar"><label for="host">Сервер</label><select id="host"><option value="">Пока нет подключённых серверов</option></select><span id="source"></span></div>
+<section id="empty" class="empty"><h2>Данные ещё не поступают</h2><p>Нажмите «Показатели этого ПК» для настоящих измерений. Первоначальное обучение займёт около 15 минут при одном наблюдении в секунду.</p><p>Демонстрация займёт несколько секунд и покажет работу обработки на искусственных данных. Это не результат научного эксперимента.</p></section>
+<div id="content" hidden>
+<section class="cards"><article><span>Состояние модели</span><strong id="phase">—</strong><small id="progress">—</small></article><article><span>Принято наблюдений</span><strong id="samples">0</strong><small id="pending">—</small></article><article><span>Уведомлений</span><strong id="alarms">0</strong><small id="notification-unit">Способ подсчёта зависит от выбранного источника</small></article><article><span>Последнее наблюдение</span><strong id="last">—</strong><small id="freshness">—</small></article></section>
+<p id="notice" class="notice"></p>
+<section class="panel"><div class="section-head"><h2>Оценка ошибки восстановления</h2><span>Последние обработанные наблюдения</span></div><canvas id="chart" height="230" aria-label="График ошибки восстановления относительно её порога"></canvas><p class="caption">Значение 1 — граница для этой оценки. Итоговая тревога также учитывает другие оценки; график не показывает все правила решения.</p></section>
+<section class="panel"><h2>Последние показатели</h2><div id="metrics" class="metric-grid"></div></section>
+<section class="panel"><h2>Журнал уведомлений</h2><p class="caption">Уведомление означает необычное наблюдение, а не подтверждённую неисправность. Названия показателей ниже — наибольшие отклонения при восстановлении, а не установленная причина.</p><div class="scroll"><table><thead><tr><th>Время выдачи</th><th>Наблюдений с тревогой</th><th>Отклонения при восстановлении</th></tr></thead><tbody id="notifications"></tbody></table></div></section>
+<section class="panel"><h2>Последние решения</h2><p id="decision-cadence" class="caption">Порядок проверки зависит от выбранного источника.</p><div class="scroll"><table><thead><tr><th>Время измерения</th><th>Оценка восстановления</th><th>Дополнительная оценка</th><th>Её порог</th><th>Решение</th></tr></thead><tbody id="decisions"></tbody></table></div></section>
+</div><footer id="processing-footer">IPCA · состояние и журнал сохраняются на этом компьютере.</footer>
+</main></body></html>
